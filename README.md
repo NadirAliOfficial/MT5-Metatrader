@@ -18,7 +18,7 @@ This Python project integrates with MetaTrader 5 (MT5) to retrieve historical ma
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-username/mt5-data-retrieval.git
+   git clone https://github.com/NadirAliOfficial/MT5-Metatrader.git
    ```
 
 2. **Install dependencies**:
@@ -78,7 +78,7 @@ Data for M5:
 - Pandas library
 
 ### **License**
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ---
 
