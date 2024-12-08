@@ -1,95 +1,92 @@
 import MetaTrader5 as mt5
 import pandas as pd
-from datetime import datetime
-import pandas_ta as ta  # Import technical analysis library
+import talib
 
-# Initialize MT5 connection
-def initialize_mt5():
-    if not mt5.initialize():
-        print("Initialization failed, error code =", mt5.last_error())
-        quit()
-    else:
-        print("Connected to MetaTrader 5")
+# Connect to MetaTrader 5
+if not mt5.initialize():
+    print("MT5 Initialization failed")
+    mt5.shutdown()
+else:
+    print("MT5 Initialized successfully")
 
-# Fetch historical data for a specific symbol and timeframe
-def fetch_data(symbol, timeframe, n=100):
-    rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, n)
+# Define the symbol for which you want to fetch data
+symbol = "EURUSD"
+num_bars = 1000  # Define the number of bars (data points) to fetch
+
+# Function to get historical data
+def get_historical_data(symbol, timeframe, num_bars):
+    rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, num_bars)
     if rates is None:
-        print(f"Failed to fetch data for {symbol} on timeframe {timeframe}")
+        print(f"Error: Unable to fetch data for {symbol}")
         return None
-    df = pd.DataFrame(rates)
-    df['time'] = pd.to_datetime(df['time'], unit='s')
-    return df
+    else:
+        # Convert to DataFrame
+        rates_frame = pd.DataFrame(rates)
+        rates_frame['time'] = pd.to_datetime(rates_frame['time'], unit='s')
+        rates_frame.set_index('time', inplace=True)
+        return rates_frame
 
-# Add technical indicators to the data
-def add_technical_indicators(df):
-    if df is not None:
-        # Moving Averages
-        df['SMA_20'] = ta.sma(df['close'], length=20)
-        df['EMA_20'] = ta.ema(df['close'], length=20)
+# Fetch historical data for multiple timeframes
+data_m5 = get_historical_data(symbol, mt5.TIMEFRAME_M5, num_bars)
+data_m15 = get_historical_data(symbol, mt5.TIMEFRAME_M15, num_bars)
+data_h1 = get_historical_data(symbol, mt5.TIMEFRAME_H1, num_bars)
+data_h4 = get_historical_data(symbol, mt5.TIMEFRAME_H4, num_bars)
+data_daily = get_historical_data(symbol, mt5.TIMEFRAME_D1, num_bars)
 
-        # RSI
-        df['RSI_14'] = ta.rsi(df['close'], length=14)
+# Show the data for M5
+print("M5 Data:")
+print(data_m5.tail())
 
-        # MACD
-        macd = ta.macd(df['close'], fast=12, slow=26, signal=9)
-        df['MACD'] = macd['MACD_12_26_9']
-        df['Signal_Line'] = macd['MACDs_12_26_9']
-
-        # ATR
-        df['ATR_14'] = ta.atr(df['high'], df['low'], df['close'], length=14)
-
-        # Bollinger Bands
-        bb = ta.bbands(df['close'], length=20, std=2)
-        df['BBL'] = bb['BBL_20_2.0']
-        df['BBM'] = bb['BBM_20_2.0']
-        df['BBU'] = bb['BBU_20_2.0']
-        df['BB_Width'] = bb['BBW_20_2.0']
-    return df
-
-# Main function to fetch data for multiple timeframes
-def fetch_data_for_multiple_timeframes(symbol):
-    timeframes = {
-        "M5": mt5.TIMEFRAME_M5,
-        "M15": mt5.TIMEFRAME_M15,
-        "H1": mt5.TIMEFRAME_H1,
-        "H4": mt5.TIMEFRAME_H4,
-        "Daily": mt5.TIMEFRAME_D1
-    }
-
-    data = {}
-
-    for tf_name, tf_code in timeframes.items():
-        print(f"Fetching data for {tf_name} timeframe...")
-        df = fetch_data(symbol, tf_code)
-        if df is not None:
-            df = add_technical_indicators(df)
-            data[tf_name] = df
-            print(f"Data for {tf_name} with Indicators:\n", df.head())
-        else:
-            print(f"Failed to retrieve {tf_name} data.")
+# Function to calculate technical indicators
+def calculate_indicators(data):
+    # Moving Averages
+    data['SMA_50'] = talib.SMA(data['close'], timeperiod=50)
+    data['SMA_200'] = talib.SMA(data['close'], timeperiod=200)
+    
+    # RSI (Relative Strength Index)
+    data['RSI'] = talib.RSI(data['close'], timeperiod=14)
+    
+    # MACD (Moving Average Convergence Divergence)
+    macd, macdsignal, macdhist = talib.MACD(data['close'], fastperiod=12, slowperiod=26, signalperiod=9)
+    data['MACD'] = macd
+    data['MACD_Signal'] = macdsignal
+    data['MACD_Hist'] = macdhist
+    
+    # ATR (Average True Range)
+    data['ATR'] = talib.ATR(data['high'], data['low'], data['close'], timeperiod=14)
+    
+    # Bollinger Bands
+    upperband, middleband, lowerband = talib.BBANDS(data['close'], timeperiod=20, nbdevup=2, nbdevdn=2, matype=0)
+    data['BB_Upper'] = upperband
+    data['BB_Middle'] = middleband
+    data['BB_Lower'] = lowerband
 
     return data
 
-# Disconnect from MT5
-def shutdown_mt5():
-    mt5.shutdown()
-    print("MT5 connection closed")
+# Calculate indicators for M5 data
+data_m5 = calculate_indicators(data_m5)
+print("M5 Data with Indicators:")
+print(data_m5[['SMA_50', 'SMA_200', 'RSI', 'MACD', 'ATR', 'BB_Upper', 'BB_Middle', 'BB_Lower']].tail())
 
-# Main script
-if __name__ == "__main__":
-    symbol = "EURUSD"  # Replace with your desired symbol
+# Calculate indicators for M15 data
+data_m15 = calculate_indicators(data_m15)
+print("M15 Data with Indicators:")
+print(data_m15[['SMA_50', 'SMA_200', 'RSI', 'MACD', 'ATR', 'BB_Upper', 'BB_Middle', 'BB_Lower']].tail())
 
-    # Initialize MT5 connection
-    initialize_mt5()
+# Calculate indicators for H1 data
+data_h1 = calculate_indicators(data_h1)
+print("H1 Data with Indicators:")
+print(data_h1[['SMA_50', 'SMA_200', 'RSI', 'MACD', 'ATR', 'BB_Upper', 'BB_Middle', 'BB_Lower']].tail())
 
-    # Fetch data for multiple timeframes
-    data = fetch_data_for_multiple_timeframes(symbol)
+# Calculate indicators for H4 data
+data_h4 = calculate_indicators(data_h4)
+print("H4 Data with Indicators:")
+print(data_h4[['SMA_50', 'SMA_200', 'RSI', 'MACD', 'ATR', 'BB_Upper', 'BB_Middle', 'BB_Lower']].tail())
 
-    # Example: Accessing the data for M5 timeframe
-    if "M5" in data:
-        print("M5 Data Head with Indicators:")
-        print(data["M5"].head())
-    
-    # Shutdown MT5 connection
-    shutdown_mt5()
+# Calculate indicators for Daily data
+data_daily = calculate_indicators(data_daily)
+print("Daily Data with Indicators:")
+print(data_daily[['SMA_50', 'SMA_200', 'RSI', 'MACD', 'ATR', 'BB_Upper', 'BB_Middle', 'BB_Lower']].tail())
+
+# Shutdown MT5
+mt5.shutdown()
