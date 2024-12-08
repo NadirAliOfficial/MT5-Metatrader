@@ -75,7 +75,7 @@ MT5 connection closed
 
 ### **File Structure**
 ```
-├── mt5_data_retrieval.py      # Main script for MT5 data retrieval
+├── script.py                  # Main script for MT5 data retrieval
 ├── requirements.txt           # Python dependencies
 ├── README.md                  # Project documentation
 └── data                       # Folder to store historical data (optional)
