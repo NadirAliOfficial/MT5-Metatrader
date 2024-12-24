@@ -43,6 +43,7 @@ def preprocess_data(data, feature_col='close', look_back=60):
     return x, y, scaler
 
 # Build LSTM model
+# Build LSTM model
 def build_lstm(input_shape):
     model = Sequential()
     model.add(LSTM(units=50, return_sequences=True, input_shape=(input_shape[1], 1)))
@@ -53,10 +54,24 @@ def build_lstm(input_shape):
     model.compile(optimizer='adam', loss='mean_squared_error')
     return model
 
+# Export model architecture and weights
+def export_model(model):
+    # Save model architecture to JSON
+    model_json = model.to_json()
+    with open("lstm_model_architecture.json", "w") as json_file:
+        json_file.write(model_json)
+
+    # Save model weights
+    model.save_weights("lstm_model_weights.h5")
+    print("Model architecture and weights exported successfully!")
+
 # Predict future trends with LSTM
 def predict_with_lstm(model, data, scaler, look_back=60):
-    last_data = data[-look_back:].reshape(1, -1, 1)
-    prediction = model.predict(last_data)
+    # Ensure data is reshaped for LSTM input
+    last_data = data[-look_back:].reshape(1, look_back, 1)  # Reshape to (1, look_back, 1)
+    scaled_prediction = model.predict(last_data)  # Predict scaled value
+    return scaler.inverse_transform(scaled_prediction)[0][0]  # Inverse scale prediction
+
     return scaler.inverse_transform(prediction)[0][0]
 
 # Fetch news and analyze sentiment
@@ -152,16 +167,19 @@ def main():
     # Step 4: Predict future trends
     prediction = predict_with_lstm(model, x, scaler)
     print(f"LSTM Prediction: {prediction}")
+    
+    # Step 5: Export model architecture and weights
+    export_model(model)
 
-    # Step 5: Fetch and analyze news
+    # Step 6: Fetch and analyze news
     news = fetch_news()
     sentiments = analyze_sentiment(news)
 
-    # Step 6: Final decision
+    # Step 7: Final decision
     decision = should_trade(sentiments, prediction)
     print(decision)
 
-    # Step 7: Place trade based on decision
+    # Step 8: Place trade based on decision
     if "Trade will be executed" in decision:
         # Example of placing a buy order
         result = place_buy_order(symbol)
