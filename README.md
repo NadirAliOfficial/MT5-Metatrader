@@ -128,3 +128,5 @@ This project is licensed under the MIT License.
 ### **MT5 Integration & Data Retrieval**
 This repository contains a Python script for integrating with MetaTrader 5 (MT5) and retrieving historical market data (OHLC and volume) for multiple timeframes. The data is retrieved and stored in Pandas DataFrames for further processing and analysis. This project is intended to serve as a base for algorithmic trading, backtesting strategies, and conducting technical analysis.
 <!-- updated: 2026-05-31 -->
+
+
