@@ -37,7 +37,7 @@ def preprocess_data(data, feature_col='close', look_back=60):
     for i in range(look_back, len(scaled_data)):
         x.append(scaled_data[i - look_back:i, 0])
         y.append(scaled_data[i, 0])
-    
+
     x, y = np.array(x), np.array(y)
     x = np.reshape(x, (x.shape[0], x.shape[1], 1))
     return x, y, scaler
@@ -78,10 +78,10 @@ def predict_with_lstm(model, data, scaler, look_back=60):
 def fetch_news():
     url = "https://newsapi.org/v2/everything"
     params = {
-        'q': 'forex',  
+        'q': 'forex',
         'apiKey': '2747a6ae0aa149dfac5e738a93667e17',
         'language': 'en',
-        'pageSize': 5  
+        'pageSize': 5
     }
     response = requests.get(url, params=params)
     if response.status_code == 200:
@@ -167,7 +167,7 @@ def main():
     # Step 4: Predict future trends
     prediction = predict_with_lstm(model, x, scaler)
     print(f"LSTM Prediction: {prediction}")
-    
+
     # Step 5: Export model architecture and weights
     export_model(model)
 
