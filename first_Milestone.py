@@ -42,19 +42,19 @@ def calculate_indicators(data):
     # Moving Averages
     data['SMA_50'] = talib.SMA(data['close'], timeperiod=50)
     data['SMA_200'] = talib.SMA(data['close'], timeperiod=200)
-    
+
     # RSI (Relative Strength Index)
     data['RSI'] = talib.RSI(data['close'], timeperiod=14)
-    
+
     # MACD (Moving Average Convergence Divergence)
     macd, macdsignal, macdhist = talib.MACD(data['close'], fastperiod=12, slowperiod=26, signalperiod=9)
     data['MACD'] = macd
     data['MACD_Signal'] = macdsignal
     data['MACD_Hist'] = macdhist
-    
+
     # ATR (Average True Range)
     data['ATR'] = talib.ATR(data['high'], data['low'], data['close'], timeperiod=14)
-    
+
     # Bollinger Bands
     upperband, middleband, lowerband = talib.BBANDS(data['close'], timeperiod=20, nbdevup=2, nbdevdn=2, matype=0)
     data['BB_Upper'] = upperband
